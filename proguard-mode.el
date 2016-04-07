@@ -168,4 +168,6 @@
   "A mode for ProGuard files"
 )
 
+(provide 'proguard-mode)
+
 ;;; proguard-mode.el ends here
