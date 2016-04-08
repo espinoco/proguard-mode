@@ -120,7 +120,7 @@
   (run-hooks 'proguard-mode-hook)
   )
 
-(add-to-list 'auto-mode-alist '("proguard-.*?\\.\\(txt\\|pro\\)$" . proguard-mode))
+(add-to-list 'auto-mode-alist '("/proguard-.*?\\.\\(txt\\|pro\\)\\'" . proguard-mode))
 
 (provide 'proguard-mode)
 
