@@ -17,7 +17,7 @@ configuration file.
 By default `proguard-mode` will be enabled on files `proguard-*.txt`
 and `proguard-*.pro`.
 
-To enable on files ending with `.pro` add:
+To enable in files with `.pro` extension:
 
 ``` emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.pro$" . proguard-mode))
