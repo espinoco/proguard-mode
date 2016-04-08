@@ -22,7 +22,3 @@ To enable on files ending with `.pro` add:
 ``` emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.pro$" . proguard-mode))
 ```
-
-### Indentation
-
-Customize `proguard-indent-offset`.

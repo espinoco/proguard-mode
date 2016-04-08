@@ -29,144 +29,98 @@
 
 ;;; Code:
 
-(require 'generic-x)
+(defvar proguard-mode-hook nil)
 
-(defvar proguard-indent-offset 4
-  "*Indentation offset for `proguard-mode'.")
+(defvar proguard-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "\C-j" 'newline-and-indent)
+    map)
+  "Keymap for ProGuard major mode.")
 
-(defun proguard-indent-line ()
-  "Indent current line for `proguard-mode'."
-  (interactive)
-  (let ((indent-col 0))
-    (save-excursion
-      (beginning-of-line)
-      (condition-case nil
-        (while t
-          (backward-up-list 1)
-          (when (looking-at "[({]")
-            (setq indent-col (+ indent-col proguard-indent-offset))))
-        (error nil)))
-    (save-excursion
-      (back-to-indentation)
-      (when (and (looking-at "[)}]") (>= indent-col proguard-indent-offset))
-        (setq indent-col (- indent-col proguard-indent-offset))))
-    (indent-line-to indent-col)))
+(define-derived-mode proguard-mode java-mode "ProGuard"
+  "Mode for editing ProGuard configuration files."
+  (font-lock-add-keywords
+    nil
+    '(
+       ("-\\<include\\>" . 'font-lock-keyword-face)
+       ("-\\<basedirectory\\>" . 'font-lock-keyword-face)
+       ("-\\<injars\\>" . 'font-lock-keyword-face)
+       ("-\\<outjars\\>" . 'font-lock-keyword-face)
+       ("-\\<libraryjars\\>" . 'font-lock-keyword-face)
+       ("-\\<skipnonpubliclibraryclasses\\>" . 'font-lock-keyword-face)
+       ("-\\<dontskipnonpubliclibraryclasses\\>" . 'font-lock-keyword-face)
+       ("-\\<dontskipnonpubliclibraryclassmembers\\>" . 'font-lock-keyword-face)
+       ("-\\<keepdirectories\\>" . 'font-lock-keyword-face)
+       ("-\\<target\\>" . 'font-lock-keyword-face)
+       ("-\\<forceprocessing\\>" . 'font-lock-keyword-face)
+       ("-\\<keep\\>" . 'font-lock-keyword-face)
+       ("-\\<keepclassmembers\\>" . 'font-lock-keyword-face)
+       ("-\\<keepclasseswithmembers\\>" . 'font-lock-keyword-face)
+       ("-\\<keepnames\\>" . 'font-lock-keyword-face)
+       ("-\\<keepclassmembernames\\>" . 'font-lock-keyword-face)
+       ("-\\<keepclasseswithmembernames\\>" . 'font-lock-keyword-face)
+       ("-\\<printseeds\\>" . 'font-lock-keyword-face)
+       ("-\\<dontshrink\\>" . 'font-lock-keyword-face)
+       ("-\\<printusage\\>" . 'font-lock-keyword-face)
+       ("-\\<whyareyoukeeping\\>" . 'font-lock-keyword-face)
+       ("-\\<dontoptimize\\>" . 'font-lock-keyword-face)
+       ("-\\<optimizations\\>" . 'font-lock-keyword-face)
+       ("-\\<optimizationpasses\\>" . 'font-lock-keyword-face)
+       ("-\\<assumenosideeffects\\>" . 'font-lock-keyword-face)
+       ("-\\<allowaccessmodification\\>" . 'font-lock-keyword-face)
+       ("-\\<mergeinterfacesaggressively\\>" . 'font-lock-keyword-face)
+       ("-\\<dontobfuscate\\>" . 'font-lock-keyword-face)
+       ("-\\<printmapping\\>" . 'font-lock-keyword-face)
+       ("-\\<applymapping\\>" . 'font-lock-keyword-face)
+       ("-\\<obfuscationdictionary\\>" . 'font-lock-keyword-face)
+       ("-\\<classobfuscationdictionary\\>" . 'font-lock-keyword-face)
+       ("-\\<packageobfuscationdictionary\\>" . 'font-lock-keyword-face)
+       ("-\\<overloadaggressively\\>" . 'font-lock-keyword-face)
+       ("-\\<useuniqueclassmembernames\\>" . 'font-lock-keyword-face)
+       ("-\\<dontusemixedcaseclassnames\\>" . 'font-lock-keyword-face)
+       ("-\\<keeppackagenames\\>" . 'font-lock-keyword-face)
+       ("-\\<flattenpackagehierarchy\\>" . 'font-lock-keyword-face)
+       ("-\\<repackageclasses\\>" . 'font-lock-keyword-face)
+       ("-\\<keepattributes\\>" . 'font-lock-keyword-face)
+       ("-\\<keepparameternames\\>" . 'font-lock-keyword-face)
+       ("-\\<renamesourcefileattribute\\>" . 'font-lock-keyword-face)
+       ("-\\<adaptclassstrings\\>" . 'font-lock-keyword-face)
+       ("-\\<adaptresourcefilenames\\>" . 'font-lock-keyword-face)
+       ("-\\<adaptresourcefilecontents\\>" . 'font-lock-keyword-face)
+       ("-\\<dontpreverify\\>" . 'font-lock-keyword-face)
+       ("-\\<microedition\\>" . 'font-lock-keyword-face)
+       ("-\\<verbose\\>" . 'font-lock-keyword-face)
+       ("-\\<dontnote\\>" . 'font-lock-keyword-face)
+       ("-\\<dontwarn\\>" . 'font-lock-keyword-face)
+       ("-\\<ignorewarnings\\>" . 'font-lock-keyword-face)
+       ("-\\<printconfiguration\\>" . 'font-lock-keyword-face)
+       ("-\\<dump\\>" . 'font-lock-keyword-face)
+       ("!" . 'font-lock-builtin-face)
+       ("\\$" . 'font-lock-builtin-face)
+       ("<.*?>" . 'font-lock-type-face)
+       ("@.*?\\." . 'font-lock-builtin-face)
+       ("\\?" . 'font-lock-builtin-face)
+       ("\\**" . 'font-lock-builtin-face)
+       ("\\%" . 'font-lock-builtin-face)
+       ("\\.\\.\\." . 'font-lock-builtin-face)
+       ("\\<includedescriptorclasses\\>" . 'font-lock-builtin-face)
+       ("\\<allowshrinking\\>" . 'font-lock-builtin-face)
+       ("\\<allowoptimization\\>" . 'font-lock-builtin-face)
+       ("\\<allowobfuscation\\>" . 'font-lock-builtin-face)
+       ))
 
-(define-generic-mode
-  'proguard-mode
-  '("#")
-  '(
-     "-include"
-     "-basedirectory"
-     "-injars"
-     "-outjars"
-     "-libraryjars"
-     "-skipnonpubliclibraryclasses"
-     "-dontskipnonpubliclibraryclasses"
-     "-dontskipnonpubliclibraryclassmembers"
-     "-keepdirectories"
-     "-target"
-     "-forceprocessing"
-     "-keep"
-     "-keepclassmembers"
-     "-keepclasseswithmembers"
-     "-keepnames"
-     "-keepclassmembernames"
-     "-keepclasseswithmembernames"
-     "-printseeds"
-     "-dontshrink"
-     "-printusage"
-     "-whyareyoukeeping"
-     "-dontoptimize"
-     "-optimizations"
-     "-optimizationpasses"
-     "-assumenosideeffects"
-     "-allowaccessmodification"
-     "-mergeinterfacesaggressively"
-     "-dontobfuscate"
-     "-printmapping"
-     "-applymapping"
-     "-obfuscationdictionary"
-     "-classobfuscationdictionary"
-     "-packageobfuscationdictionary"
-     "-overloadaggressively"
-     "-useuniqueclassmembernames"
-     "-dontusemixedcaseclassnames"
-     "-keeppackagenames"
-     "-flattenpackagehierarchy"
-     "-repackageclasses"
-     "-keepattributes"
-     "-keepparameternames"
-     "-renamesourcefileattribute"
-     "-adaptclassstrings"
-     "-adaptresourcefilenames"
-     "-adaptresourcefilecontents"
-     "-dontpreverify"
-     "-microedition"
-     "-verbose"
-     "-dontnote"
-     "-dontwarn"
-     "-ignorewarnings"
-     "-printconfiguration"
-     "-dump"
-     )
-  '(
-     ("'.*?'" . 'font-lock-string-face)
-     ("!" . 'font-lock-builtin-face)
-     ("\\$" . 'font-lock-builtin-face)
-     ("<init>" . 'font-lock-function-name-face)
-     ("<methods>" . 'font-lock-function-name-face)
-     ("<fields>" . 'font-lock-function-name-face)
-     ("<.*?>" . 'font-lock-builtin-face)
-     ("@" . 'font-lock-builtin-face)
-     ("?" . 'font-lock-builtin-face)
-     ("\\**" . 'font-lock-builtin-face)
-     ("%" . 'font-lock-builtin-face)
-     ("\\.\\.\\." . 'font-lock-builtin-face)
-     ("\\<synthetic\\>" . 'font-lock-negation-char-face)
-     ("\\<bridge\\>" . 'font-lock-negation-char-face)
-     ("\\<varargs\\>" . 'font-lock-negation-char-face)
-     ("\\<abstract\\>" . 'font-lock-type-face)
-     ("\\<synchronized\\>" . 'font-lock-type-face)
-     ("\\<boolean\\>" . 'font-lock-type-face)
-     ("\\<private\\>" . 'font-lock-type-face)
-     ("\\<double\\>" . 'font-lock-type-face)
-     ("\\<implements\\>" . 'font-lock-type-face)
-     ("\\<protected\\>" . 'font-lock-type-face)
-     ("\\<byte\\>" . 'font-lock-type-face)
-     ("\\<import\\>" . 'font-lock-type-face)
-     ("\\<public\\>" . 'font-lock-type-face)
-     ("\\<enum\\>" . 'font-lock-type-face)
-     ("\\<transient\\>" . 'font-lock-type-face)
-     ("\\<extends\\>" . 'font-lock-type-face)
-     ("\\<int\\>" . 'font-lock-type-face)
-     ("\\<short\\>" . 'font-lock-type-face)
-     ("\\<char\\>" . 'font-lock-type-face)
-     ("\\<final\\>" . 'font-lock-type-face)
-     ("\\<interface\\>" . 'font-lock-type-face)
-     ("\\<static\\>" . 'font-lock-type-face)
-     ("\\<void\\>" . 'font-lock-type-face)
-     ("\\<class\\>" . 'font-lock-type-face)
-     ("\\<long\\>" . 'font-lock-type-face)
-     ("\\<volatile\\>" . 'font-lock-type-face)
-     ("\\<const\\>" . 'font-lock-type-face)
-     ("\\<float\\>" . 'font-lock-type-face)
-     ("\\<native\\>" . 'font-lock-type-face)
-     ("\\<strictfp\\>" . 'font-lock-type-face)
-     ("\\<includedescriptorclasses\\>" . 'font-lock-builtin-face)
-     ("\\<allowshrinking\\>" . 'font-lock-builtin-face)
-     ("\\<allowoptimization\\>" . 'font-lock-builtin-face)
-     ("\\<allowobfuscation\\>" . 'font-lock-builtin-face)
-     ("\\<[[:upper:]]\\w*" . 'font-lock-builtin-face)
-     )
-  '("proguard-.*?\\.\\(txt\\|pro\\)$")
-  (list
-    (lambda ()
-      (make-local-variable 'proguard-indent-offset)
-      (set (make-local-variable 'indent-line-function) 'proguard-indent-line)
-      ))
-  "A mode for ProGuard files"
-)
+  (setq comment-start "#")
+  (setq comment-end "")
+
+  (modify-syntax-entry ?# "< b" proguard-mode-syntax-table)
+  (modify-syntax-entry ?\n "> b" proguard-mode-syntax-table)
+
+  (use-local-map proguard-mode-map)
+
+  (run-hooks 'proguard-mode-hook)
+  )
+
+(add-to-list 'auto-mode-alist '("proguard-.*?\\.\\(txt\\|pro\\)$" . proguard-mode))
 
 (provide 'proguard-mode)
 
